@@ -203,7 +203,7 @@ Options:
     -h, --help                    Show this help message.
     -o, --output <file>|stdout    Target file to output the results to. Defaults to stdout.
     -i, --input <file>            Input dumped JSON data to use instead of fetching from the server.
-    -f, --find <name>             Find a person by their name or surname. (case and diacritics insensitive)
+    -f, --find <name>             Find a person by their name, surname or login. (case and diacritics insensitive)
     -m, --multiple                Allow multiple results (prevent returning after first match). (can only be used with -f)
     --dump                        Dump all the people matching the filter to the selected output. (cannot be used with -f)
     --format <format>             Format of the output. Defaults to "text" or autodetected from -o extension. Available formats: text, csv, json.
