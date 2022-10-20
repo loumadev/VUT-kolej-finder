@@ -260,7 +260,7 @@ Examples:
             "blockNumber": parseInt(args["block-number"])
         });
 
-        if(filter instanceof Error) return console.error("Failed compile the filter:", filter.message), process.exit(1);
+        if(filter instanceof Error) return console.error("Failed to compile the filter:", filter.message), process.exit(1);
         if(!filter.length) return console.error("Filter you specified is unable to generate any queries to fetch."), process.exit(1);
         log(`Filter compiled successfully with ${filter.length} results to fetch.`);
         log(filter);
