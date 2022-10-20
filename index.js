@@ -37,7 +37,7 @@ const argvparse = require("./argvparse");
     const output = args.o || args.output || "stdout";
     const outputStream = output === "stdout" ? process.stdout : fs.createWriteStream(path.resolve(output));
     const input = args.i || args.input;
-    const format = args.format || (output.endsWith(".csv") ? "csv" : (output.endsWith(".json") ? "json" : "text"));
+    const format = (args.format || (output.endsWith(".csv") ? "csv" : (output.endsWith(".json") ? "json" : "text"))).toLowerCase();
     const batchSize = args["batch-size"] || 10;
     const fetchDelay = args["fetch-delay"] || 300;
     let inputFile = null;
