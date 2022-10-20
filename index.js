@@ -6,7 +6,27 @@ const fs = require("fs");
 const argvparse = require("./argvparse");
 
 
-(async (args) => {
+/**
+ * @typedef {Object} Person
+ * @param {number} number
+ * @param {string} fullname
+ * @param {string} block
+ * @param {string} room
+ * @param {string} login
+ * @param {string} email
+ */
+
+/**
+ * @typedef {Object} QueryFilter
+ * @param {string} block
+ * @param {number} room
+ * @param {number} floor
+ * @param {string} blockType
+ * @param {number} blockNumber
+ */
+
+
+(function(args) {
     //Init some utility functions
     const range = (start, stop, step = 1) => Array.from({length: (stop - start) / step + 1}, (_, i) => start + (i * step));
     const log = (...msg) => (args.v || args.verbose) && console.warn(...msg);
@@ -22,7 +42,11 @@ const argvparse = require("./argvparse");
     const fetchDelay = args["fetch-delay"] || 300;
     let inputFile = null;
 
-    //Init functions
+    //Init 
+    /**
+     * @param {string} query
+     * @return {Promise<Person[]>}
+     */
     function fetchQuery(query) {
         return new Promise((resolve, reject) => {
             fetch("https://kn.vutbr.cz/is2/index.html", {
@@ -49,6 +73,10 @@ const argvparse = require("./argvparse");
         });
     }
 
+    /**
+     * @param {QueryFilter} filter
+     * @return {string[] | Error} 
+     */
     function compileFilter(filter) {
         const blockMap = {
             "a": [2, 3, 4, 5],
@@ -92,7 +120,12 @@ const argvparse = require("./argvparse");
         return results;
     }
 
-    async function fetchFilter(filter, callback) {
+    /**
+     * @param {string[]} filter
+     * @param {(function(Person): boolean)} callback
+     * @return {Promise<void>} 
+     */
+    async function fetchFilterQueries(filter, callback) {
         //Use input file as a cache to prevent from spamming the server
         if(inputFile) {
             for(const query of filter) {
@@ -135,7 +168,11 @@ const argvparse = require("./argvparse");
         }
     }
 
+    /** @type {Person[]} */
     const __jsonCache = [];
+    /**
+     * @param {Person} person
+     */
     function writeOutput(person) {
         if(person === null) {
             if(format === "json") outputStream.write(JSON.stringify(__jsonCache));
@@ -155,6 +192,9 @@ const argvparse = require("./argvparse");
         }
     }
 
+    /**
+     * @return {void} 
+     */
     function printHelp() {
         const program = `node ${path.relative(process.cwd(), process.argv[1])}`;
         console.log(`Usage: ${program} [options] [filter]
@@ -201,95 +241,97 @@ Examples:
         return process.exit(0);
     }
 
-    //Resolve help option
-    if(args.h || args.help) return printHelp();
+    (async function main() {
+        //Resolve help option
+        if(args.h || args.help) return printHelp();
 
-    if(!["text", "csv", "json"].includes(format)) {
-        console.error(`Unsupported format "${format}"`);
-        return process.exit(1);
-    }
-
-    //Compile input filter to list of queries
-    log("Trying to compile the input filter...");
-    const filter = compileFilter({
-        "block": args.b || args.block,
-        "room": parseInt(args.r || args.room),
-        "floor": parseInt(args.floor),
-        "blockType": args["block-type"],
-        "blockNumber": parseInt(args["block-number"])
-    });
-
-    if(filter instanceof Error) return console.error("Failed compile the filter:", filter.message), process.exit(1);
-    if(!filter.length) return console.error("Filter you specified is unable to generate any queries to fetch."), process.exit(1);
-    log(`Filter compiled successfully with ${filter.length} results to fetch.`);
-    log(filter);
-
-    //Load and parse input file
-    if(input) {
-        log("Trying to load input file...");
-        try {
-            inputFile = JSON.parse(fs.readFileSync(input).toString());
-        } catch(err) {
-            console.error("Couldn't load or parse input file.");
-            return process.exit(1);
-        }
-        log("Input file loaded successfully.");
-    }
-
-    //Find a person by name
-    const nameToFind = args.f || args.find;
-    const isDumping = args.dump;
-    if(nameToFind) {
-        if(isDumping) {
-            console.error("Cannot use --dump with --find.");
+        if(!["text", "csv", "json"].includes(format)) {
+            console.error(`Unsupported format "${format}"`);
             return process.exit(1);
         }
 
-        if(typeof nameToFind !== "string") {
-            console.error("Invalid name to find.");
-            return process.exit(1);
+        //Compile input filter to list of queries
+        log("Trying to compile the input filter...");
+        const filter = compileFilter({
+            "block": args.b || args.block,
+            "room": parseInt(args.r || args.room),
+            "floor": parseInt(args.floor),
+            "blockType": args["block-type"],
+            "blockNumber": parseInt(args["block-number"])
+        });
+
+        if(filter instanceof Error) return console.error("Failed compile the filter:", filter.message), process.exit(1);
+        if(!filter.length) return console.error("Filter you specified is unable to generate any queries to fetch."), process.exit(1);
+        log(`Filter compiled successfully with ${filter.length} results to fetch.`);
+        log(filter);
+
+        //Load and parse input file
+        if(input) {
+            log("Trying to load input file...");
+            try {
+                inputFile = JSON.parse(fs.readFileSync(input).toString());
+            } catch(err) {
+                console.error("Couldn't load or parse input file.");
+                return process.exit(1);
+            }
+            log("Input file loaded successfully.");
         }
 
-        const name = normalizeName(nameToFind);
-        log(`Trying to find a person named "${name}"...`);
-
-        await fetchFilter(filter, data => {
-            const people = data.filter(p => normalizeName(p.fullname).includes(name) || normalizeName(p.login).includes(name));
-            log(`Fetched ${data.length} people, ${people.length} match the filter.`);
-
-            if(people.length) {
-                if(args.m || args.multiple) {
-                    people.forEach(p => writeOutput(p));
-                    return false;
-                } else {
-                    writeOutput(people[0]);
-                    return true;
-                }
+        //Find a person by name
+        const nameToFind = args.f || args.find;
+        const isDumping = args.dump;
+        if(nameToFind) {
+            if(isDumping) {
+                console.error("Cannot use --dump with --find.");
+                return process.exit(1);
             }
 
-            return false;
-        });
+            if(typeof nameToFind !== "string") {
+                console.error("Invalid name to find.");
+                return process.exit(1);
+            }
 
-        writeOutput(null);
-        log("Finished fetching the queries.");
-    }
-    //Dump all people matching the filter
-    else if(isDumping) {
-        log("Dumping all the people matching the filter...");
+            const name = normalizeName(nameToFind);
+            log(`Trying to find a person named "${name}"...`);
 
-        await fetchFilter(filter, data => {
-            log(`Fetched ${data.length} people.`);
-            data.forEach(p => writeOutput(p));
-            return false;
-        });
+            await fetchFilterQueries(filter, data => {
+                const people = data.filter(p => normalizeName(p.fullname).includes(name) || normalizeName(p.login).includes(name));
+                log(`Fetched ${data.length} people, ${people.length} match the filter.`);
 
-        writeOutput(null);
-        log("Finished fetching the queries.");
-    }
-    //No valid option, print help
-    else {
-        printHelp();
-        process.exit(1);
-    }
+                if(people.length) {
+                    if(args.m || args.multiple) {
+                        people.forEach(p => writeOutput(p));
+                        return false;
+                    } else {
+                        writeOutput(people[0]);
+                        return true;
+                    }
+                }
+
+                return false;
+            });
+
+            writeOutput(null);
+            log("Finished fetching the queries.");
+        }
+        //Dump all people matching the filter
+        else if(isDumping) {
+            log("Dumping all the people matching the filter...");
+
+            await fetchFilterQueries(filter, data => {
+                log(`Fetched ${data.length} people.`);
+                data.forEach(p => writeOutput(p));
+                return false;
+            });
+
+            writeOutput(null);
+            log("Finished fetching the queries.");
+        }
+        //No valid option, print help
+        else {
+            printHelp();
+            process.exit(1);
+        }
+    })();
 
 })(argvparse());
