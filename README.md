@@ -47,3 +47,6 @@ Examples:
     node index.js --dump -o database.json                     Dump all the people to database.json
     node index.js -i database.json -f "name" -o output.csv    Find a person named "name" in database.json and output to output.csv
 ```
+
+Warning: This tool is not affiliated with VUT Brno in any way. Use at your own risk.
+(The code needs some heavy refactoring, but it's enough to do the work.)
