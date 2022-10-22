@@ -49,4 +49,5 @@ Examples:
 ```
 
 Warning: This tool is not affiliated with VUT Brno in any way. Use at your own risk.
+
 (The code needs some heavy refactoring, but it's enough to do the work.)
