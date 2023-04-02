@@ -252,14 +252,15 @@ Examples:
         }
 
         //Compile input filter to list of queries
-        log("Trying to compile the input filter...");
-        const filter = compileFilter({
+        const settings = {
             "block": args.b || args.block,
             "room": parseInt(args.r || args.room),
             "floor": parseInt(args.floor),
             "blockType": args["block-type"],
             "blockNumber": parseInt(args["block-number"])
-        });
+        };
+        log("Trying to compile the input filter...", settings);
+        const filter = compileFilter(settings);
 
         if(filter instanceof Error) return console.error("Failed to compile the filter:", filter.message), process.exit(1);
         if(!filter.length) return console.error("Filter you specified is unable to generate any queries to fetch."), process.exit(1);
