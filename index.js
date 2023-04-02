@@ -88,6 +88,7 @@ const argvparse = require("./argvparse");
         //Detect invalid values
         if(!filter) return new Error("Invalid filter argument.");
         if(filter.blockType) {
+            filter.blockType = filter.blockType.toLowerCase();
             if(!blockMap[filter.blockType]) return new Error("Unknown block type.");
             if(filter.blockNumber && !blockMap[filter.blockType].includes(filter.blockNumber)) return new Error("Specified block type and block number does not exists.");
         }
