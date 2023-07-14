@@ -1,4 +1,6 @@
-# VUT-kolej-finder
+# VUT-kolej-finder (deprecated)
+
+**Since the exploited vulnerability was fixed by the owners of the network, this is no longer working. Old dumped data can be still loaded and looked up.**
 
 Simple tool to lookup anyone who is accommodated in VUT dormitories.
 It is possible to construct a custom filter to make the lookup as specific as possible (lookup by block type and floor number).
@@ -48,6 +50,6 @@ Examples:
     node index.js -i database.json -f "name" -o output.csv    Find a person named "name" in database.json and output to output.csv
 ```
 
-Warning: This tool is not affiliated with VUT Brno in any way. Use at your own risk.
+Disclaimer: This tool is not affiliated with VUT Brno in any way. Use at your own risk.
 
 (The code needs some heavy refactoring, but it's enough to do the work.)
